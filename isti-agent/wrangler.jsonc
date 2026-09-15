@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "isti-agent",
+  "main": "worker/src/index.ts",
+  "compatibility_date": "2026-09-15",
+  "workers_dev": true,
+  "secrets": {
+    "required": ["ANTHROPIC_API_KEY"]
+  },
+  "vars": {
+    "ALLOWED_ORIGIN": "http://localhost:4200"
+  }
+}

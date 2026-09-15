@@ -1,0 +1,17 @@
+<main class="workspace">
+  <app-sidebar (selectChat)="onSelectChat($event)" />
+
+  <section class="chat-panel" aria-label="Conversation avec ISTI Agent">
+    <app-chat-header />
+
+    <div class="chat-content">
+      @if (!hasResponse() && !isSending()) {
+      <app-chat-welcome (suggestionSelected)="useSuggestion($event)" />
+      } @else {
+      <app-chat-messages [currentChat]="currentChat()" [isSending]="isSending()" />
+      }
+    </div>
+
+    <app-message-composer [(prompt)]="prompt" [isSending]="isSending()" (submitted)="send()" />
+  </section>
+</main>

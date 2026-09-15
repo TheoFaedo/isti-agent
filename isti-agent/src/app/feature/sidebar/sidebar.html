@@ -1,0 +1,30 @@
+<aside class="sidebar" aria-label="Navigation principale">
+  <a class="brand" href="/" aria-label="ISTI Agent, accueil"
+    ><span class="brand-mark" aria-hidden="true">i</span><span>ISTI<span>agent</span></span></a
+  >
+  <div class="conversation-list">
+    <p class="list-label">RÉCENT</p>
+    <button class="conversation active" type="button">
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <path d="M20 11.5a8 8 0 0 1-8.8 7.96L7 22v-3.35A8 8 0 1 1 20 11.5Z" /></svg
+      ><span>Nouvelle conversation</span>
+    </button>
+    @for (chat of chats(); track chat.id) {
+    <button class="new-chat" type="button" (click)="chat.id ? onChatSelect(chat.id) : null">
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>{{ chat.name }}
+    </button>
+    }
+  </div>
+  <div class="sidebar-footer">
+    <button class="footer-link" type="button">
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" /></svg
+      >Paramètres
+    </button>
+    <div class="profile">
+      <span class="avatar">TF</span
+      ><span><strong>Théo Faedo</strong><small>Compte personnel</small></span
+      ><span class="more" aria-hidden="true">•••</span>
+    </div>
+  </div>
+</aside>
