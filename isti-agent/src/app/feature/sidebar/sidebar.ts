@@ -1,15 +1,30 @@
-import { Component, inject, output } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import { ChatService } from '../../core/service/chat.service';
 
 @Component({ selector: 'app-sidebar', styleUrl: './sidebar.less', templateUrl: './sidebar.html' })
 export class SidebarComponent {
   private readonly chatService = inject(ChatService);
 
-  selectChat = output<string>();
+  readonly selectChat = output<string>();
+  readonly deleteChat = output<string>();
+  readonly newChat = output<void>();
+  readonly activeChatId = input<string | null>(null);
 
-  onChatSelect(chatId: string) {
-    this.selectChat.emit(chatId);
+  onNewChat(): void {
+    this.newChat.emit();
   }
 
-  public chats = this.chatService.chats;
+  onChatSelect(chatId: string | null): void {
+    if (chatId) {
+      this.selectChat.emit(chatId);
+    }
+  }
+
+  onChatDelete(chatId: string | null): void {
+    if (chatId) {
+      this.deleteChat.emit(chatId);
+    }
+  }
+
+  public readonly chats = this.chatService.chats;
 }

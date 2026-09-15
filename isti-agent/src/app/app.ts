@@ -9,15 +9,19 @@ import { SidebarComponent } from './feature/sidebar/sidebar';
 import { Chat, Message } from './shared/model/chat.model';
 import { ChatService } from './core/service/chat.service';
 
-const defaultChat: Chat = {
-  id: null,
-  name: 'New chat',
-  history: [],
-  context: [],
-  updatedAt: new Date(),
-  createdAt: new Date(),
-  saved: false,
-};
+function createEmptyChat(): Chat {
+  const now = new Date();
+
+  return {
+    id: null,
+    name: 'New chat',
+    history: [],
+    context: [],
+    updatedAt: now,
+    createdAt: now,
+    saved: false,
+  };
+}
 
 @Component({
   imports: [
@@ -35,12 +39,12 @@ export class App {
   private readonly chatService = inject(ChatService);
   private readonly messageApiService = inject(MessageApiService);
 
-  private chats = this.chatService.chats();
+  private readonly chats = this.chatService.chats;
 
   protected readonly prompt = signal<string>('');
   protected readonly isSending = signal(false);
 
-  protected readonly currentChat = signal<Chat>(defaultChat);
+  protected readonly currentChat = signal<Chat>(createEmptyChat());
 
   protected readonly response = computed(
     () => this.currentChat().history[this.currentChat().history.length - 1]?.content ?? '',
@@ -99,10 +103,23 @@ export class App {
     }));
   }
 
-  onSelectChat(id: string) {
-    const chat = this.chats.find((chat) => chat.id === id);
+  onSelectChat(id: string): void {
+    const chat = this.chats().find((chat) => chat.id === id);
     if (chat) {
       this.currentChat.set(chat);
+    }
+  }
+
+  onNewChat(): void {
+    this.currentChat.set(createEmptyChat());
+    this.prompt.set('');
+  }
+
+  onDeleteChat(id: string): void {
+    this.chatService.deleteChat(id);
+
+    if (this.currentChat().id === id) {
+      this.onNewChat();
     }
   }
 }

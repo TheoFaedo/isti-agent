@@ -1,8 +1,13 @@
 <main class="workspace">
-  <app-sidebar (selectChat)="onSelectChat($event)" />
+  <app-sidebar
+    [activeChatId]="currentChat().id"
+    (newChat)="onNewChat()"
+    (selectChat)="onSelectChat($event)"
+    (deleteChat)="onDeleteChat($event)"
+  />
 
   <section class="chat-panel" aria-label="Conversation avec ISTI Agent">
-    <app-chat-header />
+    <app-chat-header [currentChat]="currentChat()" />
 
     <div class="chat-content">
       @if (!hasResponse() && !isSending()) {

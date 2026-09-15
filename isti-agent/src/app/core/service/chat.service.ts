@@ -17,7 +17,7 @@ export class ChatService {
   public createNewChat(message: string): Chat {
     const chat: Chat = {
       id: crypto.randomUUID(),
-      name: message.slice(20),
+      name: message.slice(0, 20),
       history: [],
       context: [],
       updatedAt: new Date(),
