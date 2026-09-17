@@ -1,5 +1,5 @@
 import { effect, Service, signal } from '@angular/core';
-import { Chat, Message } from '../../shared/model/chat.model';
+import { Chat } from '../../shared/model/chat.model';
 
 @Service()
 export class ChatService {
@@ -14,10 +14,10 @@ export class ChatService {
     });
   }
 
-  public createNewChat(message: string): Chat {
+  public createNewChat(text: string): Chat {
     const chat: Chat = {
       id: crypto.randomUUID(),
-      name: message.slice(0, 20),
+      name: text.slice(0, 20),
       history: [],
       context: [],
       updatedAt: new Date(),

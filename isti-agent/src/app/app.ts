@@ -1,5 +1,5 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
-import { finalize, tap } from 'rxjs';
+import { last, tap } from 'rxjs';
 import { MessageApiService } from './core/service/message-api.service';
 import { ChatHeaderComponent } from './feature/chat-header/chat-header';
 import { ChatMessagesComponent } from './feature/chat-messages/chat-messages';
@@ -49,7 +49,16 @@ export class App {
   protected readonly response = computed(
     () => this.currentChat().history[this.currentChat().history.length - 1]?.content ?? '',
   );
-  protected readonly hasResponse = computed(() => this.response().length > 0);
+  protected readonly hasResponse = computed(() => this.currentChat().history.length > 0);
+
+  constructor() {
+    effect(() => {
+      const current = this.currentChat();
+      if (current.saved) {
+        this.chatService.updateChat(current);
+      }
+    });
+  }
 
   protected send() {
     const message = this.prompt().trim();
@@ -62,30 +71,49 @@ export class App {
       this.currentChat.set(chat);
     }
 
-    console.log('currentChat', this.currentChat());
-
     this.addMessage({
+      id: crypto.randomUUID(),
       role: 'user',
       content: message,
     });
 
-    console.log(this.currentChat());
-
     this.isSending.set(true);
+    const assistMessageId = crypto.randomUUID();
+    this.addMessage({
+      id: assistMessageId,
+      role: 'assistant',
+      content: '',
+    });
     this.messageApiService
       .requestOnce(this.currentChat().context)
       .pipe(
-        tap((r) =>
-          this.addMessage({
-            role: 'assistant',
-            content: r,
-          }),
-        ),
-        finalize(() => this.isSending.set(false)),
+        tap((messageResult) => {
+          const textBlock = Object.values(messageResult.blocks).find((b) => b.type === 'text');
+          if (textBlock) {
+            this.replaceMessageChunk(assistMessageId, textBlock.text);
+          }
+        }),
+        last(),
+        tap((messageResult) => {
+          const toolBlock = Object.values(messageResult.blocks).find((b) => b.type === 'tool_use');
+          if (toolBlock) {
+            const tool = this.messageApiService.toolTable[toolBlock.name];
+            if (tool) {
+              const input = JSON.parse(toolBlock.input);
+              const result = tool.action(input);
+              result.then((r) => {
+                this.addToolResult(assistMessageId, r);
+              });
+            }
+          }
+          this.isSending.set(false);
+        }),
       )
       .subscribe({
-        next: (r) => {
-          this.chatService.updateChat(this.currentChat());
+        error: (err) => {
+          console.error(err);
+          this.replaceMessageChunk(assistMessageId, 'Erreur occured: ' + err.message);
+          this.isSending.set(false);
         },
       });
   }
@@ -99,6 +127,32 @@ export class App {
       ...chat,
       history: [...chat.history, message],
       context: [...chat.history, message],
+      updatedAt: new Date(),
+    }));
+  }
+
+  private replaceMessageChunk(id: string, chunk: string): void {
+    this.currentChat.update((chat) => ({
+      ...chat,
+      history: chat.history.map((message) =>
+        message.id === id ? { ...message, content: chunk } : message,
+      ),
+      context: chat.context.map((message) =>
+        message.id === id ? { ...message, content: chunk } : message,
+      ),
+      updatedAt: new Date(),
+    }));
+  }
+
+  private addToolResult(id: string, result: string): void {
+    this.currentChat.update((chat) => ({
+      ...chat,
+      history: chat.history.map((message) =>
+        message.id === id ? { ...message, content: message.content + result } : message,
+      ),
+      context: chat.context.map((message) =>
+        message.id === id ? { ...message, content: message.content + result } : message,
+      ),
       updatedAt: new Date(),
     }));
   }
