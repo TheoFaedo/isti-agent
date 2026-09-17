@@ -20,6 +20,27 @@ export type Chat =
 
 export interface Message {
   id: string;
-  content: string;
   role: 'user' | 'assistant';
+  blocks: MessageBlock[];
+}
+
+export type MessageBlock = TextBlock | ToolUseBlock | ToolResultBlock;
+
+export interface TextBlock {
+  type: 'text';
+  text: string;
+}
+
+export interface ToolUseBlock {
+  type: 'tool_use';
+  id: string;
+  name: string;
+  input: Record<string, unknown>;
+}
+
+export interface ToolResultBlock {
+  type: 'tool_result';
+  tool_use_id: string;
+  content: string;
+  is_error?: boolean;
 }

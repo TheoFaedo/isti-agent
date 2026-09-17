@@ -5,6 +5,7 @@ type TextContentBlock = {
 
 type ToolUseContentBlock = {
   type: 'tool_use';
+  id: string;
   name: string;
 };
 
@@ -22,8 +23,7 @@ type ClaudeStreamData =
     }
   | {
       type: 'message_delta';
-      index: number;
-      delta: { type: 'message_delta'; stop_reason: string };
+      delta: { stop_reason: string };
     }
   | {
       type: 'message_stop';
@@ -51,6 +51,7 @@ export interface TextBlock {
 
 export interface ToolUseBlock {
   type: 'tool_use';
+  id: string;
   name: string;
   input: string;
 }
@@ -72,12 +73,7 @@ function isClaudeStreamData(value: unknown): value is ClaudeStreamData {
       return true;
 
     case 'message_delta':
-      return (
-        typeof value['index'] === 'number' &&
-        isRecord(value['delta']) &&
-        value['delta']['type'] === 'message_delta' &&
-        typeof value['delta']['stop_reason'] === 'string'
-      );
+      return isRecord(value['delta']) && typeof value['delta']['stop_reason'] === 'string';
 
     case 'content_block_start':
       return (
@@ -86,6 +82,7 @@ function isClaudeStreamData(value: unknown): value is ClaudeStreamData {
         ((value['content_block']['type'] === 'text' &&
           typeof value['content_block']['text'] === 'string') ||
           (value['content_block']['type'] === 'tool_use' &&
+            typeof value['content_block']['id'] === 'string' &&
             typeof value['content_block']['name'] === 'string'))
       );
 
@@ -158,7 +155,12 @@ export function parseTextBlock(streamEvents: readonly ClaudeStreamEvent[]): Mess
         registry[index] =
           content_block.type === 'text'
             ? { type: 'text', text: content_block.text }
-            : { type: 'tool_use', name: content_block.name, input: '' };
+            : {
+                type: 'tool_use',
+                id: content_block.id,
+                name: content_block.name,
+                input: '',
+              };
         break;
       }
 

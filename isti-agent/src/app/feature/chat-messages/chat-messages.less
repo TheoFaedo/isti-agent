@@ -1,1 +1,163 @@
-:host { display: contents; }.messages { align-self: stretch; display: grid; gap: 31px; margin: auto; max-width: 770px; width: 100%; }.message { display: flex; gap: 13px; }.user-message { justify-content: flex-end; }.user-message > div { background: #e9f5d5; border-radius: 14px 3px 14px 14px; max-width: 75%; padding: 13px 16px; }.avatar, .agent-mini { align-items: center; background: #c6a6ff; border-radius: 50%; color: #292044; display: inline-flex; flex: 0 0 auto; font-size: 10px; font-weight: 700; height: 31px; justify-content: center; width: 31px; }.agent-mini { background: #d5ff6c; border-radius: 9px; color: #102034; font-family: Georgia, serif; font-size: 19px; font-style: italic; }.message p, .response { color: #314155; font-size: 14px; line-height: 1.6; margin: 0; }.message-name { color: #83905f !important; font-size: 10px !important; font-weight: 700; letter-spacing: .07em; margin-bottom: 5px !important; text-transform: uppercase; }.response ::ng-deep p, .response ::ng-deep ul, .response ::ng-deep ol, .response ::ng-deep pre, .response ::ng-deep blockquote { margin: 0 0 12px; }.response ::ng-deep p:last-child, .response ::ng-deep ul:last-child, .response ::ng-deep ol:last-child, .response ::ng-deep pre:last-child, .response ::ng-deep blockquote:last-child { margin-bottom: 0; }.response ::ng-deep h1, .response ::ng-deep h2, .response ::ng-deep h3, .response ::ng-deep h4 { color: #102034; line-height: 1.3; margin: 20px 0 8px; }.response ::ng-deep h1:first-child, .response ::ng-deep h2:first-child, .response ::ng-deep h3:first-child, .response ::ng-deep h4:first-child { margin-top: 0; }.response ::ng-deep ul, .response ::ng-deep ol { padding-left: 24px; }.response ::ng-deep li + li { margin-top: 4px; }.response ::ng-deep a { color: #3d6422; text-decoration-thickness: 1px; }.response ::ng-deep code { background: #eff3e8; border-radius: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9em; padding: 2px 4px; }.response ::ng-deep pre { background: #102034; border-radius: 6px; color: #f5f8ef; overflow-x: auto; padding: 12px; }.response ::ng-deep pre code { background: transparent; color: inherit; padding: 0; }.response ::ng-deep blockquote { border-left: 3px solid #87a557; color: #526275; padding-left: 12px; }.typing { display: flex; gap: 4px; padding: 8px 0; }.typing span { animation: bounce 1.2s infinite; background: #87a557; border-radius: 50%; height: 6px; width: 6px; }.typing span:nth-child(2) { animation-delay: .15s; }.typing span:nth-child(3) { animation-delay: .3s; }@keyframes bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }@media (max-width: 720px) { .user-message > div { max-width: 85%; } }
+:host {
+  display: contents;
+}
+.messages {
+  align-self: stretch;
+  display: grid;
+  gap: 31px;
+  margin: auto;
+  max-width: 770px;
+  width: 100%;
+}
+.message {
+  display: flex;
+  gap: 13px;
+}
+.user-message {
+  justify-content: flex-end;
+}
+.user-message > div {
+  background: #e9f5d5;
+  border-radius: 14px 3px 14px 14px;
+  max-width: 75%;
+  padding: 13px 16px;
+}
+.avatar,
+.agent-mini {
+  align-items: center;
+  background: #c6a6ff;
+  border-radius: 50%;
+  color: #292044;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 700;
+  height: 31px;
+  justify-content: center;
+  width: 31px;
+}
+.agent-mini {
+  background: #d5ff6c;
+  border-radius: 9px;
+  color: #102034;
+  font-family: Georgia, serif;
+  font-size: 19px;
+  font-style: italic;
+}
+.message p,
+.response {
+  color: #314155;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+.message-name {
+  color: #83905f !important;
+  font-size: 10px !important;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  margin-bottom: 5px !important;
+  text-transform: uppercase;
+}
+.tool-use {
+  color: #526275 !important;
+  font-size: 12px !important;
+  font-style: italic;
+  margin: 0 0 12px !important;
+}
+.response ::ng-deep p,
+.response ::ng-deep ul,
+.response ::ng-deep ol,
+.response ::ng-deep pre,
+.response ::ng-deep blockquote {
+  margin: 0 0 12px;
+}
+.response ::ng-deep p:last-child,
+.response ::ng-deep ul:last-child,
+.response ::ng-deep ol:last-child,
+.response ::ng-deep pre:last-child,
+.response ::ng-deep blockquote:last-child {
+  margin-bottom: 0;
+}
+.response ::ng-deep h1,
+.response ::ng-deep h2,
+.response ::ng-deep h3,
+.response ::ng-deep h4 {
+  color: #102034;
+  line-height: 1.3;
+  margin: 20px 0 8px;
+}
+.response ::ng-deep h1:first-child,
+.response ::ng-deep h2:first-child,
+.response ::ng-deep h3:first-child,
+.response ::ng-deep h4:first-child {
+  margin-top: 0;
+}
+.response ::ng-deep ul,
+.response ::ng-deep ol {
+  padding-left: 24px;
+}
+.response ::ng-deep li + li {
+  margin-top: 4px;
+}
+.response ::ng-deep a {
+  color: #3d6422;
+  text-decoration-thickness: 1px;
+}
+.response ::ng-deep code {
+  background: #eff3e8;
+  border-radius: 3px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+  padding: 2px 4px;
+}
+.response ::ng-deep pre {
+  background: #102034;
+  border-radius: 6px;
+  color: #f5f8ef;
+  overflow-x: auto;
+  padding: 12px;
+}
+.response ::ng-deep pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+.response ::ng-deep blockquote {
+  border-left: 3px solid #87a557;
+  color: #526275;
+  padding-left: 12px;
+}
+.typing {
+  display: flex;
+  gap: 4px;
+  padding: 8px 0;
+}
+.typing span {
+  animation: bounce 1.2s infinite;
+  background: #87a557;
+  border-radius: 50%;
+  height: 6px;
+  width: 6px;
+}
+.typing span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.typing span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes bounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-5px);
+  }
+}
+@media (max-width: 720px) {
+  .user-message > div {
+    max-width: 85%;
+  }
+}

@@ -1,23 +1,38 @@
 <section class="messages" aria-live="polite">
-  @for (message of history(); track message.message.id) { @if (message.message.role === 'user') {
-  <article class="message user-message">
-    <div>
-      <p class="message-name">Vous</p>
-      <p [innerHTML]="message.message.content"></p>
+  @for (message of history(); track message.id) {
+    @if (message.role === 'user') {
+      <article class="message user-message">
+        <div>
+          <p class="message-name">Vous</p>
+          @for (block of message.blocks; track $index) {
+            @if (block.type === 'text') {
+              <div class="response" [innerHTML]="block.html"></div>
+            }
+          }
+        </div>
+        <span class="avatar">TF</span>
+      </article>
+    } @else {
+      <article class="message agent-message">
+        <span class="agent-mini" aria-hidden="true">i</span>
+        <div>
+          <p class="message-name">ISTI Agent</p>
+          @for (block of message.blocks; track $index) {
+            @if (block.type === 'text') {
+              <div class="response" [innerHTML]="block.html"></div>
+            } @else {
+              <p class="tool-use" aria-label="Outil utilisé">
+                Utilisation de l’outil {{ block.name }}
+              </p>
+            }
+          }
+        </div>
+      </article>
+    }
+  }
+  @if (isSending()) {
+    <div class="typing" aria-label="ISTI Agent rédige une réponse">
+      <span></span><span></span><span></span>
     </div>
-    <span class="avatar">TF</span>
-  </article>
-  } @else {
-  <article class="message agent-message">
-    <span class="agent-mini" aria-hidden="true">i</span>
-    <div>
-      <p class="message-name">ISTI Agent</p>
-      <div class="response" [innerHTML]="message.html"></div>
-    </div>
-  </article>
-  }} @if (isSending()) {
-  <div class="typing" aria-label="ISTI Agent rédige une réponse">
-    <span></span><span></span><span></span>
-  </div>
   }
 </section>

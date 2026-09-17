@@ -58,7 +58,7 @@ export class MessageApiService {
       .post<StreamEvent | StreamResponse>(
         this.workerUrl,
         {
-          messages: messages.map(({ role, content }) => ({ role, content })),
+          messages: messages.map(({ role, blocks }) => ({ role, content: blocks })),
           tools: TOOLS.map((t: Tool) => t.definition),
           system: this.systemPrompts,
         },
