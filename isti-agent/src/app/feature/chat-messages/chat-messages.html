@@ -1,5 +1,5 @@
 <section class="messages" aria-live="polite">
-  @for (message of history(); track $index) { @if (message.message.role === 'user') {
+  @for (message of history(); track message.message.id) { @if (message.message.role === 'user') {
   <article class="message user-message">
     <div>
       <p class="message-name">Vous</p>

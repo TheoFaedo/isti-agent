@@ -14,7 +14,6 @@ interface ChatHistory {
 })
 export class ChatMessagesComponent {
   currentChat = input.required<Chat>({});
-  currentChatTrackedById = computed(() => this.currentChat(), { equal: (a, b) => a.id === b.id });
 
   history = signal<ChatHistory[]>([]);
 

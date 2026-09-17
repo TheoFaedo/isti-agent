@@ -32,7 +32,11 @@ export default {
     }
 
     try {
-      const { messages } = (await request.json()) as { messages: unknown };
+      const { messages, tools, system } = (await request.json()) as {
+        messages: unknown;
+        tools: unknown;
+        system: unknown;
+      };
       if (!Array.isArray(messages)) {
         return Response.json({ error: 'Invalid request' }, { status: 400, headers });
       }
@@ -45,13 +49,26 @@ export default {
           'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
+          stream: true,
           model: 'claude-haiku-4-5-20251001',
           max_tokens: 512,
           messages,
+          tools,
+          system,
         }),
       });
 
-      headers.set('Content-Type', anthropicResponse.headers.get('Content-Type') ?? 'application/json');
+      if (!anthropicResponse.ok) {
+        return new Response(anthropicResponse.body, {
+          status: anthropicResponse.status,
+          headers,
+        });
+      }
+
+      headers.set(
+        'Content-Type',
+        anthropicResponse.headers.get('Content-Type') ?? 'application/json',
+      );
       return new Response(anthropicResponse.body, {
         status: anthropicResponse.status,
         headers,
