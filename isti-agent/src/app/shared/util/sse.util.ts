@@ -1,75 +1,42 @@
-export type SseEventMap = Record<string, unknown>;
-
-export type SseEvent<TMap extends SseEventMap> = {
-  [TEvent in keyof TMap & string]: {
-    event: TEvent;
-    data: TMap[TEvent];
-  };
-}[keyof TMap & string];
-
-// export type ClaudeStreamEventType =
-//   | 'message_start'
-//   | 'content_block_start'
-//   | 'content_block_delta'
-//   | 'content_block_stop'
-//   | 'message_delta'
-//   | 'message_stop'
-//   | 'ping'
-//   | 'error';
-
-export type ClaudeStreamEventMap = {
-  content_block_start: ClaudeStreamToolUseEvent | ClaudeStreamTextEvent;
-  content_block_delta: ClaudeStreamInputDeltaEvent | ClaudeStreamTextDeltaEvent;
-  message_delta: ClaudeStreamDeltaEvent;
-  message_stop: {};
+type TextContentBlock = {
+  type: 'text';
+  text: string;
 };
 
-export type ClaudeStreamEvent = SseEvent<ClaudeStreamEventMap>;
-
-export type ClaudeStreamTextEvent = {
-  content_block: {
-    type: 'text';
-    text: string;
-  };
-  type: 'content_block_start';
-  index: number;
+type ToolUseContentBlock = {
+  type: 'tool_use';
+  name: string;
 };
 
-export type ClaudeStreamToolUseEvent = {
-  content_block: {
-    type: 'tool_use';
-    name: string;
-  };
-  type: 'content_block_start';
-  index: number;
-};
+type ClaudeStreamData =
+  | {
+      type: 'content_block_start';
+      index: number;
+      content_block: TextContentBlock | ToolUseContentBlock;
+    }
+  | {
+      type: 'content_block_delta';
+      index: number;
+      delta:
+        { type: 'input_json_delta'; partial_json: string } | { type: 'text_delta'; text: string };
+    }
+  | {
+      type: 'message_delta';
+      index: number;
+      delta: { type: 'message_delta'; stop_reason: string };
+    }
+  | {
+      type: 'message_stop';
+    };
 
-export type ClaudeStreamInputDeltaEvent = {
-  delta: {
-    type: 'input_json_delta';
-    partial_json: string;
+type SseEvent<TData extends { type: string }> = {
+  [TType in TData['type']]: {
+    event: TType;
+    data: Extract<TData, { type: TType }>;
   };
-  type: 'content_block_delta';
-  index: number;
-};
+}[TData['type']];
 
-export type ClaudeStreamTextDeltaEvent = {
-  delta: {
-    type: 'text_delta';
-    text: string;
-  };
-  type: 'content_block_delta';
-  index: number;
-};
-
-export type ClaudeStreamDeltaEvent = {
-  delta: {
-    stop_reason: string;
-    type: 'message_delta';
-  };
-  index: number;
-  type: 'message_delta';
-};
+export type ClaudeStreamEvent = SseEvent<ClaudeStreamData>;
 
 export interface MessageResult {
   blocks: Record<number, Block>;
@@ -91,24 +58,81 @@ export interface ToolUseBlock {
 /** A content block reconstructed from Claude's SSE stream. */
 export type Block = TextBlock | ToolUseBlock;
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function isClaudeStreamData(value: unknown): value is ClaudeStreamData {
+  if (!isRecord(value) || typeof value['type'] !== 'string') {
+    return false;
+  }
+
+  switch (value['type']) {
+    case 'message_stop':
+      return true;
+
+    case 'message_delta':
+      return (
+        typeof value['index'] === 'number' &&
+        isRecord(value['delta']) &&
+        value['delta']['type'] === 'message_delta' &&
+        typeof value['delta']['stop_reason'] === 'string'
+      );
+
+    case 'content_block_start':
+      return (
+        typeof value['index'] === 'number' &&
+        isRecord(value['content_block']) &&
+        ((value['content_block']['type'] === 'text' &&
+          typeof value['content_block']['text'] === 'string') ||
+          (value['content_block']['type'] === 'tool_use' &&
+            typeof value['content_block']['name'] === 'string'))
+      );
+
+    case 'content_block_delta':
+      return (
+        typeof value['index'] === 'number' &&
+        isRecord(value['delta']) &&
+        ((value['delta']['type'] === 'text_delta' && typeof value['delta']['text'] === 'string') ||
+          (value['delta']['type'] === 'input_json_delta' &&
+            typeof value['delta']['partial_json'] === 'string'))
+      );
+
+    default:
+      return false;
+  }
+}
+
+function createSseEvent(data: ClaudeStreamData): ClaudeStreamEvent {
+  switch (data.type) {
+    case 'content_block_start':
+      return { event: 'content_block_start', data };
+    case 'content_block_delta':
+      return { event: 'content_block_delta', data };
+    case 'message_delta':
+      return { event: 'message_delta', data };
+    case 'message_stop':
+      return { event: 'message_stop', data };
+  }
+}
+
 export function parseSseEvent(rawEvent: string): ClaudeStreamEvent[] {
-  const event = rawEvent.match(/^event:\s*(.+)$/m)?.[1];
+  const eventName = rawEvent.match(/^event:\s*(.+)$/m)?.[1];
   const rawData = rawEvent.match(/^data:\s*(.+)$/m)?.[1];
 
-  if (!event || !rawData) {
+  if (!eventName || !rawData) {
     return [];
   }
 
   try {
     const data: unknown = JSON.parse(rawData);
 
-    return [
-      {
-        event: event as ClaudeStreamEvent['event'],
-        data,
-      } as ClaudeStreamEvent,
-    ];
-  } catch (ignored) {
+    if (!isClaudeStreamData(data) || data.type !== eventName) {
+      return [];
+    }
+
+    return [createSseEvent(data)];
+  } catch {
     return [];
   }
 }
@@ -119,37 +143,37 @@ export function parseTextBlock(streamEvents: readonly ClaudeStreamEvent[]): Mess
   let finished: boolean = false;
 
   for (const event of streamEvents) {
-    if (event.event === 'message_stop') {
-      finished = true;
-      continue;
-    }
+    switch (event.event) {
+      case 'message_stop':
+        finished = true;
+        break;
 
-    if (event.event === 'content_block_start') {
-      const { content_block: block, index } = event.data;
+      case 'message_delta':
+        finishReason = event.data.delta.stop_reason;
+        break;
 
-      registry[index] =
-        block.type === 'text'
-          ? { type: 'text', text: block.text }
-          : { type: 'tool_use', name: block.name, input: '' };
-      continue;
-    }
+      case 'content_block_start': {
+        const { content_block, index } = event.data;
 
-    const { delta, index } = event.data;
-    const block = registry[index];
+        registry[index] =
+          content_block.type === 'text'
+            ? { type: 'text', text: content_block.text }
+            : { type: 'tool_use', name: content_block.name, input: '' };
+        break;
+      }
 
-    if (event.event === 'message_delta') {
-      finishReason = event.data.delta.stop_reason;
-    }
+      case 'content_block_delta': {
+        const { delta, index } = event.data;
+        const block = registry[index];
 
-    if (!block) {
-      continue;
-    }
+        if (block?.type === 'text' && delta.type === 'text_delta') {
+          registry[index] = { ...block, text: block.text + delta.text };
+        }
 
-    if (event.event === 'content_block_delta') {
-      if (block.type === 'text' && delta?.type === 'text_delta') {
-        registry[index] = { ...block, text: block.text + delta.text };
-      } else if (block.type === 'tool_use' && delta?.type === 'input_json_delta') {
-        registry[index] = { ...block, input: block.input + delta.partial_json };
+        if (block?.type === 'tool_use' && delta.type === 'input_json_delta') {
+          registry[index] = { ...block, input: block.input + delta.partial_json };
+        }
+        break;
       }
     }
   }

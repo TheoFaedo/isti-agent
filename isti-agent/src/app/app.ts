@@ -90,7 +90,7 @@ export class App {
         tap((messageResult) => {
           const textBlock = Object.values(messageResult.blocks).find((b) => b.type === 'text');
           if (textBlock) {
-            this.replaceMessageChunk(assistMessageId, textBlock.text);
+            this.updateMessage(assistMessageId, textBlock.text);
           }
         }),
         last(),
@@ -112,7 +112,7 @@ export class App {
       .subscribe({
         error: (err) => {
           console.error(err);
-          this.replaceMessageChunk(assistMessageId, 'Erreur occured: ' + err.message);
+          this.updateMessage(assistMessageId, 'Erreur occured: ' + err.message);
           this.isSending.set(false);
         },
       });
@@ -131,7 +131,7 @@ export class App {
     }));
   }
 
-  private replaceMessageChunk(id: string, chunk: string): void {
+  private updateMessage(id: string, chunk: string): void {
     this.currentChat.update((chat) => ({
       ...chat,
       history: chat.history.map((message) =>
