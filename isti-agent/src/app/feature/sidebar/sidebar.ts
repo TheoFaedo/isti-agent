@@ -1,30 +1,26 @@
-import { Component, inject, input, output } from '@angular/core';
-import { ChatService } from '../../core/service/chat.service';
+import { Component, computed, inject } from '@angular/core';
+import { AgentService } from '../../core/service/agent.service';
 
 @Component({ selector: 'app-sidebar', styleUrl: './sidebar.less', templateUrl: './sidebar.html' })
 export class SidebarComponent {
-  private readonly chatService = inject(ChatService);
-
-  readonly selectChat = output<string>();
-  readonly deleteChat = output<string>();
-  readonly newChat = output<void>();
-  readonly activeChatId = input<string | null>(null);
+  private readonly agent = inject(AgentService);
 
   onNewChat(): void {
-    this.newChat.emit();
+    this.agent.newChat();
   }
 
   onChatSelect(chatId: string | null): void {
     if (chatId) {
-      this.selectChat.emit(chatId);
+      this.agent.selectChat(chatId);
     }
   }
 
   onChatDelete(chatId: string | null): void {
     if (chatId) {
-      this.deleteChat.emit(chatId);
+      this.agent.deleteChat(chatId);
     }
   }
 
-  public readonly chats = this.chatService.chats;
+  public readonly chats = this.agent.chats;
+  public readonly activeChatId = computed(() => this.agent.currentChat().id);
 }

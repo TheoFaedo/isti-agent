@@ -1,4 +1,34 @@
 <form class="composer-area" (submit)="submit($event)">
-  <div class="composer"><textarea [formField]="promptForm" placeholder="Écrivez votre message..." aria-label="Votre message à ISTI Agent" rows="1"></textarea><div class="composer-actions"><button class="attach" type="button" aria-label="Joindre un fichier"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m20.5 11.5-8.93 8.93a6 6 0 0 1-8.49-8.49l9.2-9.2a4 4 0 0 1 5.66 5.66l-9.2 9.2a2 2 0 0 1-2.83-2.83l8.49-8.49" /></svg></button><button class="send" type="submit" [disabled]="!prompt().trim() || isSending()" aria-label="Envoyer le message"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></svg></button></div></div>
+  <div class="composer">
+    <textarea
+      [formField]="promptForm"
+      placeholder="Écrivez votre message..."
+      aria-label="Votre message à ISTI Agent"
+      rows="1"
+      (keydown)="handleKeydown($event)"
+    ></textarea>
+    <div class="composer-actions">
+      <button class="attach" type="button" aria-label="Joindre un fichier">
+        <svg aria-hidden="true" viewBox="0 0 24 24">
+          <path
+            d="m20.5 11.5-8.93 8.93a6 6 0 0 1-8.49-8.49l9.2-9.2a4 4 0 0 1 5.66 5.66l-9.2 9.2a2 2 0 0 1-2.83-2.83l8.49-8.49"
+          />
+        </svg>
+      </button>
+      <button
+        class="send"
+        type="submit"
+        [disabled]="!canSubmit()"
+        [attr.aria-describedby]="agent.isContextLimitReached() ? 'context-limit-message' : null"
+        aria-label="Envoyer le message"
+      >
+        <svg aria-hidden="true" viewBox="0 0 24 24">
+          <path d="m22 2-7 20-4-9-9-4Z" />
+          <path d="M22 2 11 13" />
+        </svg>
+      </button>
+    </div>
+  </div>
+  <app-context-counter />
   <p>ISTI Agent peut commettre des erreurs. Vérifiez les informations importantes.</p>
 </form>

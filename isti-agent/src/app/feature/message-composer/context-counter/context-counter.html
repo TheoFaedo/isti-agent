@@ -1,0 +1,48 @@
+<div class="context-usage" [class.warning]="percentage() >= 80" [class.limit]="percentage() >= 90">
+  <div class="context-usage-header">
+    <label for="context-meter"
+      >Contexte : {{ tokenCountState().inputTokens.toLocaleString('fr-FR') }} /
+      {{ tokenCountState().contextWindow.toLocaleString('fr-FR') }} tokens ({{ percentage() }} %)</label
+    >
+    <button
+      class="compact"
+      type="button"
+      [disabled]="!canRequestCompaction()"
+      (click)="requestCompaction()"
+    >
+      @if (compactionState().isCompacting) {
+        Compactage…
+      } @else {
+        Compacter
+      }
+    </button>
+  </div>
+  <meter
+    id="context-meter"
+    min="0"
+    [max]="tokenCountState().contextWindow"
+    [low]="tokenCountState().contextWindow * 0.8"
+    [high]="tokenCountState().contextWindow * 0.9"
+    optimum="0"
+    [value]="tokenCountState().inputTokens"
+  >
+    {{ percentage() }} %
+  </meter>
+  @if (tokenCountState().isCounting) {
+    <span aria-live="polite">Mise à jour du contexte…</span>
+  }
+  @if (percentage() >= 80 && percentage() < 90) {
+    <span aria-live="polite">Le contexte approche de sa limite. Pensez à le compacter.</span>
+  }
+  @if (isContextLimitReached()) {
+    <span id="context-limit-message" aria-live="assertive"
+      >La limite de 90 % est atteinte. Compactez le contexte pour envoyer un message.</span
+    >
+  }
+  @if (tokenCountState().error) {
+    <span class="context-error" aria-live="polite">{{ tokenCountState().error }}</span>
+  }
+  @if (compactionState().status) {
+    <p class="compaction-status" aria-live="polite">{{ compactionState().status }}</p>
+  }
+</div>

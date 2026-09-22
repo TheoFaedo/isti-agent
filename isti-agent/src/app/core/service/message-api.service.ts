@@ -25,6 +25,15 @@ interface StreamResponse {
   type: HttpEventType.Response;
 }
 
+interface CompactContextResponse {
+  discardedMessageIds: unknown;
+}
+
+export interface TokenCount {
+  contextWindow: number;
+  inputTokens: number;
+}
+
 @Service()
 export class MessageApiService {
   private readonly document = inject(DOCUMENT);
@@ -57,11 +66,7 @@ export class MessageApiService {
     return this.httpClient
       .post<StreamEvent | StreamResponse>(
         this.workerUrl,
-        {
-          messages: messages.map(({ role, blocks }) => ({ role, content: blocks })),
-          tools: TOOLS.map((t: Tool) => t.definition),
-          system: this.systemPrompts,
-        },
+        this.createConversationPayload(messages),
         { observe: 'events', responseType: 'text', reportDownloadProgress: true },
       )
       .pipe(
@@ -81,5 +86,36 @@ export class MessageApiService {
         ),
         map((events: ClaudeStreamEvent[]) => parseBlocks(events)),
       );
+  }
+
+  public countTokens(messages: Message[]): Observable<TokenCount> {
+    return this.httpClient.post<TokenCount>(
+      this.workerUrl + '/tokens',
+      this.createConversationPayload(messages),
+    );
+  }
+
+  public compactContext(messages: Message[]): Observable<string[]> {
+    return this.httpClient
+      .post<CompactContextResponse>(this.workerUrl + '/compact', {
+        messages: messages.map(({ id, role, blocks }) => ({ id, role, blocks })),
+      })
+      .pipe(map((response) => this.getDiscardedMessageIds(response)));
+  }
+
+  private getDiscardedMessageIds({ discardedMessageIds }: CompactContextResponse): string[] {
+    if (!Array.isArray(discardedMessageIds)) {
+      return [];
+    }
+
+    return discardedMessageIds.filter((id): id is string => typeof id === 'string');
+  }
+
+  private createConversationPayload(messages: Message[]) {
+    return {
+      messages: messages.map(({ role, blocks }) => ({ role, content: blocks })),
+      tools: TOOLS.map((tool) => tool.definition),
+      system: this.systemPrompts,
+    };
   }
 }

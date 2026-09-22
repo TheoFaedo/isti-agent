@@ -1,17 +1,31 @@
-import { Component, input, model, output } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { form, FormField } from '@angular/forms/signals';
+import { AgentService } from '../../core/service/agent.service';
+import { ContextCounterComponent } from './context-counter/context-counter';
 
-@Component({ imports: [FormField], selector: 'app-message-composer', styleUrl: './message-composer.less', templateUrl: './message-composer.html' })
+@Component({
+  imports: [ContextCounterComponent, FormField],
+  selector: 'app-message-composer',
+  styleUrl: './message-composer.less',
+  templateUrl: './message-composer.html',
+})
 export class MessageComposerComponent {
-  readonly prompt = model<string>('');
-  readonly isSending = input.required<boolean>();
-  readonly submitted = output<void>();
-  protected readonly promptForm = form(this.prompt);
+  protected readonly agent = inject(AgentService);
+  protected readonly promptForm = form(this.agent.draft);
 
-  protected submit(event: SubmitEvent) {
+  protected async submit(event: SubmitEvent): Promise<void> {
     event.preventDefault();
-    if (this.prompt().trim() && !this.isSending()) {
-      this.submitted.emit();
-    }
+    await this.agent.sendDraft();
+  }
+
+  protected async handleKeydown(event: KeyboardEvent): Promise<void> {
+    if (event.key !== 'Enter' || event.shiftKey || event.isComposing) return;
+
+    event.preventDefault();
+    await this.agent.sendDraft();
+  }
+
+  protected canSubmit(): boolean {
+    return !!this.agent.draft().trim() && !this.agent.isSubmissionBlocked();
   }
 }

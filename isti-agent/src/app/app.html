@@ -1,22 +1,17 @@
 <main class="workspace">
-  <app-sidebar
-    [activeChatId]="currentChat().id"
-    (newChat)="onNewChat()"
-    (selectChat)="onSelectChat($event)"
-    (deleteChat)="onDeleteChat($event)"
-  />
+  <app-sidebar />
 
   <section class="chat-panel" aria-label="Conversation avec ISTI Agent">
-    <app-chat-header [currentChat]="currentChat()" />
+    <app-chat-header [currentChat]="agent.currentChat()" />
 
     <div class="chat-content">
-      @if (!hasResponse() && !isSending()) {
-      <app-chat-welcome (suggestionSelected)="useSuggestion($event)" />
+      @if (!agent.hasResponse() && !agent.isSending()) {
+      <app-chat-welcome />
       } @else {
-      <app-chat-messages [currentChat]="currentChat()" [isSending]="isSending()" />
+      <app-chat-messages [currentChat]="agent.currentChat()" [isSending]="agent.isSending()" />
       }
     </div>
 
-    <app-message-composer [(prompt)]="prompt" [isSending]="isSending()" (submitted)="send()" />
+    <app-message-composer />
   </section>
 </main>

@@ -1,0 +1,69 @@
+:host {
+  display: block;
+}
+
+.context-usage {
+  color: #40536a;
+  font-size: 12px;
+  margin-top: 9px;
+}
+
+.context-usage label {
+  font-weight: 600;
+}
+
+.context-usage-header {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.compact {
+  background: transparent;
+  border: 1px solid #52677f;
+  border-radius: 7px;
+  color: #243347;
+  font-size: 12px;
+  min-height: 30px;
+  padding: 0 10px;
+}
+
+.compact:disabled {
+  background: #e6ebf0;
+  border-color: #e6ebf0;
+  color: #6f7c8a;
+  cursor: not-allowed;
+}
+
+.compact:focus-visible {
+  outline: 3px solid #91b752;
+  outline-offset: 3px;
+}
+
+.context-usage meter {
+  display: block;
+  height: 10px;
+  margin-top: 4px;
+  width: 100%;
+}
+
+.context-usage span {
+  display: block;
+  margin-top: 4px;
+}
+
+.context-usage.warning {
+  color: #855b00;
+}
+
+.context-usage.limit,
+.context-error {
+  color: #a61b1b;
+}
+
+@media (max-width: 480px) {
+  .context-usage-header {
+    align-items: flex-start;
+  }
+}
